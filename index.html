@@ -85,6 +85,9 @@
             pointer-events: none;
             transition: transform 0.3s ease;
         }
+
+    
+
     </style>
 </head>
 <body>
@@ -113,7 +116,7 @@
     </div>
 
     <script>
-        // --- GREETING LOGIC ---
+        // --- GREETING LOGIC --- 
         document.getElementById("greeting-form").addEventListener("submit", function (e) {
             e.preventDefault();
             const greetingInput = document.getElementById("name").value;
@@ -137,33 +140,40 @@
             }
         });
 
-        // --- FUNCTIONALITIES ---
+        // --- FUNCTIONALITIES --- 
         let audioBlob = null;
+        let videoStream = null;
 
         function useKeyboard() {
             const output = document.getElementById("output");
             output.innerHTML = "Anda sedang mengetik di keyboard! Ketik sesuatu di form sapaan.";
+            changeCursor();
         }
 
         function useMic() {
             const output = document.getElementById("output");
             output.innerHTML = "Mengaktifkan mikrofon... 🎤";
             navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    output.innerHTML = "Mikrofon aktif! Berbicara selama 5 detik.";
-                    const recorder = new MediaRecorder(stream);
+                .then(function(stream) {
+                    const mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
                     const audioChunks = [];
-                    recorder.ondataavailable = event => audioChunks.push(event.data);
-                    recorder.onstop = () => {
-                        audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-                        output.innerHTML = "Rekaman selesai! Suara siap diputar.";
+                    mediaRecorder.ondataavailable = function(event) {
+                        audioChunks.push(event.data);
                     };
-                    recorder.start();
-                    setTimeout(() => recorder.stop(), 5000);
+                    mediaRecorder.onstop = function() {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        output.innerHTML = "Suara telah direkam!";
+                    };
+                    setTimeout(function() {
+                        mediaRecorder.stop();
+                    }, 5000); // Record for 5 seconds
                 })
-                .catch(err => {
-                    output.innerHTML = `Gagal mengakses mikrofon: ${err.message}`;
+                .catch(function(error) {
+                    output.innerHTML = "Tidak dapat mengakses mikrofon!";
+                    console.error(error);
                 });
+            changeCursor();
         }
 
         function useSpeaker() {
@@ -177,6 +187,7 @@
             } else {
                 output.innerHTML = "Belum ada rekaman suara. Rekam dulu dengan tombol 🎤!";
             }
+            changeCursor();
         }
 
         function useCamera() {
@@ -197,14 +208,25 @@
 
         function useMouse() {
             const output = document.getElementById("output");
-            output.innerHTML = "Klik dimana saja untuk memindahkan mouse animasi! 🐭";
-            const mouseImage = document.createElement("img");
-            mouseImage.src = "https://i.giphy.com/media/jeg7qod72KSd6wvi07/giphy.gif";
+            output.innerHTML = "Klik dimana saja untuk memindahkan mouse lucu! 🐭";
+            const mouseImages = [
+                "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDNkamUza3VlamlwN280MGlmN2t2cWp1dm5jdGpjaWh1MTkxN2JveiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/jeg7qod72KSd6wvi07/giphy.gif",
+                "https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHg3aDUxdnZza2VvM2x6YjdlZjZkYWdkenk0cnJyNGpoZWd3OGY3bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/NLsFvMhMQgwEupSKnC/giphy.gif"
+            ];
+            let mouseImage = document.createElement("img");
+            mouseImage.src = mouseImages[0];
             mouseImage.classList.add("lucy-mouse");
             document.body.appendChild(mouseImage);
-            window.addEventListener("mousemove", event => {
-                mouseImage.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+            document.addEventListener("click", (event) => {
+                mouseImage.src = mouseImages[Math.floor(Math.random() * mouseImages.length)];
+                mouseImage.style.left = `${event.clientX - 25}px`;
+                mouseImage.style.top = `${event.clientY - 25}px`;
             });
+            changeCursor();
+        }
+
+        function changeCursor() {
+            document.body.style.cursor = "url('https://www.w3schools.com/w3images/forest.jpg')";
         }
     </script>
 </body>
